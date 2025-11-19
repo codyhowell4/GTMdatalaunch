@@ -11,7 +11,7 @@ import { Business, SearchStatus, User, SubscriptionTier, SavedList } from './typ
 import { createChatSession, searchBusinesses, loadMoreBusinesses } from './services/gemini';
 import { UserService } from './services/api';
 import { deduplicateBusinesses, downloadCSV } from './utils/helpers';
-import { Chat } from '@google/genai';
+import type { ChatSession } from '@google/generative-ai';
 import { AlertCircle, Plus, Loader2, SearchX } from 'lucide-react';
 
 // CONFIG: Replace with your actual Stripe Payment Link
@@ -39,7 +39,7 @@ function App() {
     const [error, setError] = useState<string | null>(null);
 
     const [guestSearchCount, setGuestSearchCount] = useState(0);
-    const chatSessionRef = useRef<Chat | null>(null);
+    const chatSessionRef = useRef<ChatSession | null>(null);
 
     // --- Init ---
     useEffect(() => {

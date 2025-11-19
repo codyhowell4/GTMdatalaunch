@@ -1,15 +1,16 @@
-import { GoogleGenAI, Chat } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import type { ChatSession } from "@google/generative-ai";
 import { Business } from '../types';
 import { parseMarkdownTable } from '../utils/helpers';
 
 const API_KEY = process.env.API_KEY || '';
 
-export const createChatSession = (): Chat => {
+export const createChatSession = (): ChatSession => {
   if (!API_KEY) {
     throw new Error("API_KEY is missing. Please check your environment configuration.");
   }
 
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  const ai = new GoogleGenerativeAI(API_KEY);
 
   // System instruction sets the behavior for the entire session
   const systemInstruction = `
@@ -45,17 +46,20 @@ export const createChatSession = (): Chat => {
     Do not output any text other than the table.
   `;
 
-  return ai.chats.create({
-    model: 'gemini-2.5-flash',
-    config: {
-      tools: [{ googleMaps: {}, googleSearch: {} }],
-      systemInstruction: systemInstruction,
-      maxOutputTokens: 8192, 
+  const model = ai.getGenerativeModel({
+    model: 'gemini-2.0-flash-exp',
+    systemInstruction: systemInstruction,
+    tools: [{ googleSearch: {} }],
+  });
+
+  return model.startChat({
+    generationConfig: {
+      maxOutputTokens: 8192,
     },
   });
 };
 
-export const searchBusinesses = async (chat: Chat, query: string): Promise<Business[]> => {
+export const searchBusinesses = async (chat: ChatSession, query: string): Promise<Business[]> => {
   const prompt = `
     Task: Find businesses for "${query}".
     
@@ -70,11 +74,11 @@ export const searchBusinesses = async (chat: Chat, query: string): Promise<Busin
   `;
 
   try {
-    const response = await chat.sendMessage({ message: prompt });
-    const text = response.text;
-    
+    const response = await chat.sendMessage(prompt);
+    const text = response.response.text();
+
     if (!text) {
-        throw new Error("No text response received from Gemini.");
+      throw new Error("No text response received from Gemini.");
     }
 
     console.log("Gemini Search Response:", text);
@@ -86,7 +90,7 @@ export const searchBusinesses = async (chat: Chat, query: string): Promise<Busin
   }
 };
 
-export const loadMoreBusinesses = async (chat: Chat): Promise<Business[]> => {
+export const loadMoreBusinesses = async (chat: ChatSession): Promise<Business[]> => {
   const prompt = `
     Task: Find MORE unique businesses for the previous request.
     
@@ -97,11 +101,11 @@ export const loadMoreBusinesses = async (chat: Chat): Promise<Business[]> => {
   `;
 
   try {
-    const response = await chat.sendMessage({ message: prompt });
-    const text = response.text;
-    
+    const response = await chat.sendMessage(prompt);
+    const text = response.response.text();
+
     if (!text) {
-        throw new Error("No text response received from Gemini.");
+      throw new Error("No text response received from Gemini.");
     }
 
     console.log("Gemini Load More Response:", text);
