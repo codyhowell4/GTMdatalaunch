@@ -2,7 +2,7 @@
 FROM node:18-alpine as build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 COPY . .
 # Build Arguments
 ARG GEMINI_API_KEY
@@ -17,7 +17,7 @@ WORKDIR /app
 
 # Install production dependencies only
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Copy built frontend assets from Stage 1
 COPY --from=build /app/dist ./dist
