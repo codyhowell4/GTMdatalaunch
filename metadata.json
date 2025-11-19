@@ -1,0 +1,5 @@
+{
+  "name": "ClientScout AI",
+  "description": "Intelligent lead generation tool that identifies ideal clients using Google Maps data and exports actionable contact lists.",
+  "requestFramePermissions": []
+}
